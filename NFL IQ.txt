@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fan IQ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',sans-serif;background:#111;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;font-size:16px}
+:root{--p:#E31837;--a:#FFB81C;--p2:#ff2d4a}
+/* Demo bar */
+.dbar{background:#1a1a1a;width:100%;padding:10px 16px;border-bottom:2px solid #2a2a2a;display:flex;align-items:center;gap:10px}
+.dbar-label{font-size:.68rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+#teamSelect{flex:1;background:#2a2a2a;color:#fff;border:2px solid #444;border-radius:8px;padding:7px 10px;font-size:.82rem;cursor:pointer}
+/* Header */
+header{width:100%;padding:14px 20px;text-align:center;background:var(--p);border-bottom:4px solid var(--a)}
+header h1{font-size:1.2rem;letter-spacing:1px;color:var(--a);font-weight:700}
+header p{font-size:.72rem;color:rgba(255,255,255,.8);margin-top:2px}
+/* Fanbase rank banner */
+.fbrank{background:rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.08);padding:8px 16px;text-align:center;font-size:.78rem;color:rgba(255,255,255,.6);width:100%}
+.fbrank strong{color:var(--a)}
+/* Layout */
+.wrap{width:100%;max-width:480px;padding:20px 16px}
+.screen{display:none}.screen.active{display:block}
+/* Buttons */
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:10px;transition:opacity .15s;letter-spacing:.3px}
+.btn:active{opacity:.8}
+.bp{background:var(--p);color:#fff}
+.ba{background:var(--a);color:#111}
+.bg{background:#222;color:#bbb;border:1px solid #333}
+.btn-ghost{background:transparent;color:#666;border:none;font-size:.85rem;cursor:pointer;width:100%;padding:10px;margin-bottom:4px}
+/* Start screen */
+.start-hero{text-align:center;padding:24px 0 20px}
+.start-hero h2{font-size:1.5rem;font-weight:700;color:var(--a);margin-bottom:6px}
+.start-hero p{color:#888;font-size:.9rem;line-height:1.5}
+.user-card{background:#1a1a1a;border-radius:14px;padding:16px;margin-bottom:16px;border:1px solid #2a2a2a}
+.user-card .welcome{color:#888;font-size:.75rem;margin-bottom:2px}
+.user-card .uname{font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:8px}
+.user-card .stats{display:flex;gap:12px}
+.user-card .stat{flex:1;background:#111;border-radius:8px;padding:10px;text-align:center}
+.user-card .stat-val{font-size:1.2rem;font-weight:700;color:var(--a)}
+.user-card .stat-lbl{font-size:.65rem;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:#333;font-size:.78rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#2a2a2a}
+/* Loading */
+#sLd{text-align:center;padding-top:60px}
+.spin{width:44px;height:44px;border:4px solid #2a2a2a;border-top-color:var(--p);border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 16px}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* Quiz */
+.qprogress{display:flex;gap:4px;margin-bottom:16px}
+.qpip{flex:1;height:4px;border-radius:2px;background:#2a2a2a;transition:background .3s}
+.qpip.done-ok{background:#2ecc71}
+.qpip.done-no{background:#e74c3c}
+.qpip.done-to{background:#555}
+.qpip.active{background:var(--p)}
+.qmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.qnum{font-size:.78rem;color:#666}
+.trow{display:flex;align-items:center;gap:8px}
+.pbadge{background:var(--a);color:#111;font-weight:700;padding:3px 10px;border-radius:10px;font-size:.75rem}
+.tring{position:relative;width:38px;height:38px}
+.tring svg{transform:rotate(-90deg)}
+.tring circle{fill:none;stroke:#2a2a2a;stroke-width:3.5}
+.tarc{stroke:var(--p);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:96;stroke-dashoffset:0;transition:stroke-dashoffset .95s linear}
+.tnum{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.72rem;font-weight:700}
+.tring.danger .tarc{stroke:#e74c3c}.tring.danger .tnum{color:#e74c3c}
+.qtxt{font-size:1.05rem;font-weight:600;margin-bottom:18px;line-height:1.5;min-height:60px}
+.opts{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.ob{background:#1a1a1a;border:2px solid #2a2a2a;color:#fff;padding:14px 16px;border-radius:12px;text-align:left;font-size:.92rem;cursor:pointer;transition:border-color .15s;min-height:52px;line-height:1.3}
+.ob:active:not(:disabled){opacity:.8}
+.ob.ok{border-color:#2ecc71;background:#061a0e}
+.ob.no{border-color:#e74c3c;background:#1a0606}
+.ob:disabled{cursor:default}
+.fb{padding:12px 14px;border-radius:10px;font-size:.85rem;margin-bottom:12px;display:none;line-height:1.45}
+.fb.show{display:block}
+.fb.ok{background:#061a0e;border-left:4px solid #2ecc71}
+.fb.no{background:#1a0606;border-left:4px solid #e74c3c}
+.fb.to{background:#1a1a1a;border-left:4px solid #555}
+.pts-flash{font-size:.78rem;font-weight:700;margin-top:6px}
+.pts-flash.gain{color:#2ecc71}.pts-flash.lose{color:#e74c3c}
+.flagbtn{background:none;border:none;color:#333;font-size:.72rem;cursor:pointer;text-decoration:underline;display:none;margin-bottom:8px}
+.flagbtn.show{display:block}
+/* Result */
+#sRs{padding-top:8px}
+.rs-hero{text-align:center;margin-bottom:16px}
+.rs-icon{font-size:2.8rem;margin-bottom:6px}
+.rs-title{font-size:1.4rem;font-weight:700;color:var(--a);margin-bottom:4px}
+.rs-sub{color:#888;font-size:.88rem}
+.rs-score{background:var(--p);border-radius:14px;padding:18px;text-align:center;margin-bottom:14px}
+.rs-pts{font-size:2.4rem;font-weight:800;color:var(--a)}
+.rs-pts-lbl{font-size:.78rem;color:rgba(255,255,255,.7);margin-top:2px}
+.rs-meta{display:flex;gap:8px;margin-top:12px}
+.rs-stat{flex:1;background:rgba(0,0,0,.25);border-radius:8px;padding:8px;text-align:center}
+.rs-stat-val{font-size:1rem;font-weight:700;color:#fff}
+.rs-stat-lbl{font-size:.62rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.iq-badge{display:inline-block;padding:7px 20px;border-radius:20px;font-size:.85rem;font-weight:700;border:2px solid var(--a);color:var(--a);background:#1a1400;margin-bottom:14px}
+.streak-msg{border-radius:10px;padding:12px 14px;font-size:.88rem;text-align:center;margin-bottom:14px;line-height:1.4}
+.streak-msg.perfect{background:#061a0e;border:1px solid #2ecc71;color:#2ecc71}
+.streak-msg.reset{background:#1a0a00;border:1px solid #e87c00;color:#e87c00}
+/* Claim score */
+.claim-box{background:linear-gradient(135deg,#0d0d1a,#1a0a0d);border:2px solid var(--a);border-radius:14px;padding:20px;margin-bottom:14px;text-align:center}
+.claim-box h3{color:var(--a);font-size:1.05rem;font-weight:700;margin-bottom:4px}
+.claim-box .claim-team{color:#ccc;font-size:.85rem;margin-bottom:14px;line-height:1.4}
+/* Share */
+.share-card{background:#1a1a1a;border-radius:12px;padding:14px;margin-bottom:12px;font-family:monospace;font-size:.82rem;color:#ccc;line-height:1.7;white-space:pre-wrap;word-break:break-word}
+.shr{display:flex;gap:8px;margin-bottom:12px}
+.sb{flex:1;padding:11px 6px;border-radius:10px;border:none;font-size:.78rem;font-weight:700;cursor:pointer}
+.sx{background:#000;color:#fff}.sf{background:#1877f2;color:#fff}.sc2{background:#2a2a2a;color:#fff}
+/* Challenge */
+.cbox{background:linear-gradient(135deg,#0d0d1f,#0a1a1a);border:2px solid var(--a);border-radius:12px;padding:14px;margin-bottom:12px}
+.cbox h4{color:var(--a);font-size:.85rem;font-weight:700;margin-bottom:3px}
+.cbox p{color:#777;font-size:.75rem;margin-bottom:10px}
+.clink{background:#0a0a14;border:1px solid #2a2a2a;border-radius:8px;padding:10px;font-size:.75rem;color:#aaa;word-break:break-all;margin-bottom:10px;line-height:1.4}
+.cbtn{width:100%;padding:11px;border:none;border-radius:8px;font-size:.88rem;font-weight:700;cursor:pointer;background:var(--a);color:#111}
+.remind{background:none;border:2px dashed #2a2a2a;border-radius:8px;color:#555;font-size:.78rem;padding:10px;width:100%;cursor:pointer;margin-bottom:8px}
+/* Breakdown */
+.bkdn{background:#1a1a1a;border-radius:12px;padding:14px;margin-top:4px}
+.bkdn h4{color:#666;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.bq{display:flex;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #222;font-size:.82rem}
+.bq:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.bq-i{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.bq-body{flex:1}
+.bq-q{color:#ccc;margin-bottom:3px;line-height:1.3}
+.bq-ans{font-size:.75rem;margin-bottom:2px}
+.bq-ans.ok{color:#2ecc71}.bq-ans.no{color:#e74c3c}.bq-ans.to{color:#888}
+.bq-pts{font-size:.72rem;font-weight:700}
+.bq-pts.gain{color:#2ecc71}.bq-pts.lose{color:#e74c3c}.bq-pts.neu{color:#666}
+.bq-fact{font-size:.72rem;color:#555;margin-top:3px;font-style:italic}
+/* Already played */
+#sAl{text-align:center;padding-top:30px}
+#sAl h2{color:var(--a);margin-bottom:8px;font-size:1.3rem}
+#sAl p{color:#888;font-size:.88rem;margin-bottom:6px}
+.al-score{font-size:2rem;font-weight:800;color:var(--a);margin:12px 0 4px}
+.al-details{color:#666;font-size:.82rem;margin-bottom:20px}
+/* Yesterday */
+.yday{background:#1a1a1a;border-left:4px solid var(--p);border-radius:10px;padding:12px 14px;margin-bottom:16px}
+.yday h4{color:var(--a);font-size:.78rem;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.yq{margin-bottom:8px;font-size:.82rem}
+.yq-q{color:#ccc;margin-bottom:2px;line-height:1.3}
+.yq-a{color:#2ecc71;font-size:.76rem}
+.yq-u{font-size:.76rem}.yq-u.ok{color:#2ecc71}.yq-u.no{color:#e74c3c}.yq-u.to{color:#888}
+/* Leaderboard */
+#sLb h2{color:var(--a);text-align:center;margin-bottom:3px;font-size:1.2rem}
+.lb-sub{text-align:center;color:#666;font-size:.75rem;margin-bottom:14px}
+.tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.tab{flex-shrink:0;padding:8px 12px;border:2px solid #2a2a2a;border-radius:8px;background:transparent;color:#666;font-size:.72rem;cursor:pointer;white-space:nowrap}
+.tab.on{border-color:var(--p);color:#fff;background:#1a0808}
+table{width:100%;border-collapse:collapse}
+th{color:var(--a);font-size:.7rem;padding:7px 8px;text-align:left;border-bottom:1px solid #2a2a2a}
+td{padding:8px 8px;font-size:.82rem;border-bottom:1px solid #1a1a1a}
+tr.me td{background:var(--p);color:#fff;font-weight:700}
+.r1{color:#ffd700}.r2{color:#aaa}.r3{color:#cd7f32}
+.yb{display:inline-block;padding:1px 6px;border-radius:8px;font-size:.62rem;font-weight:700;background:var(--a);color:#111;margin-left:4px}
+/* How to play */
+#sHow h2{color:var(--a);text-align:center;margin-bottom:4px}
+.hw-sub{text-align:center;color:#666;font-size:.8rem;margin-bottom:16px}
+.hw-card{background:#1a1a1a;border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.hw-card h4{color:var(--a);font-size:.88rem;margin-bottom:8px;font-weight:700}
+.hw-card p{color:#bbb;font-size:.84rem;line-height:1.6}
+.pts-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center;margin-top:10px}
+.pts-cell{background:#2a2a2a;border-radius:8px;padding:8px 4px}
+.pts-cell .q{color:var(--a);font-weight:700;font-size:.9rem}
+.pts-cell .r{color:#888;font-size:.72rem}
+.rk-row{display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:6px}
+.scoring-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.sg-cell{background:#2a2a2a;border-radius:8px;padding:10px 6px;text-align:center}
+.sg-val{font-weight:700;font-size:.95rem}
+.sg-val.green{color:#2ecc71}.sg-val.red{color:#e74c3c}.sg-val.gray{color:#888}
+.sg-lbl{color:#555;font-size:.68rem;margin-top:3px}
+</style>
+</head>
+<body>
+
+<!-- Demo bar (remove in production) -->
+<div class="dbar">
+  <span class="dbar-label">🏈 Demo:</span>
+  <select id="teamSelect"></select>
+</div>
+
+<header>
+  <h1 id="hName">Arrowhead Addict</h1>
+  <p id="hUrl">arrowheadaddict.com</p>
+</header>
+
+<div class="fbrank" id="fbRankBanner">
+  <strong id="fbTeam">Chiefs</strong> fans are ranked <strong id="fbRank">#—</strong> today
+</div>
+
+<div class="wrap">
+
+  <!-- START -->
+  <div class="screen active" id="sStart">
+    <div class="start-hero">
+      <h2>Daily Fan IQ</h2>
+      <p id="startSub">5 questions. Prove your team's fans know it best.</p>
+    </div>
+
+    <!-- Authenticated user card -->
+    <div class="user-card" id="authCard" style="display:none">
+      <div class="welcome">Welcome back</div>
+      <div class="uname" id="authName">—</div>
+      <div class="stats">
+        <div class="stat"><div class="stat-val" id="authStreak">0</div><div class="stat-lbl">🔥 Streak</div></div>
+        <div class="stat"><div class="stat-val" id="authAlltime">0</div><div class="stat-lbl">All-time pts</div></div>
+        <div class="stat"><div class="stat-val" id="authPerfect">0</div><div class="stat-lbl">Perfect days</div></div>
+      </div>
+    </div>
+
+    <!-- Yesterday reveal (authenticated) -->
+    <div class="yday" id="ydayPanel" style="display:none">
+      <h4>📋 Yesterday's answers</h4>
+      <div id="ydayQs"></div>
+    </div>
+
+    <button class="btn bp" id="btnPlay">Play Today ⚡</button>
+    <button class="btn bg" id="btnGuest" style="display:none">Play as Guest</button>
+    <button class="btn bg" id="btnLogin" style="display:none">Log In / Create Account</button>
+    <div class="divider">or</div>
+    <button class="btn bg" id="btnLb">Leaderboard 🏆</button>
+    <button class="btn-ghost" id="btnHow">How to Play</button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="screen" id="sLd">
+    <div class="spin"></div>
+    <p id="ldMsg" style="color:#666;text-align:center;font-size:.9rem">Generating today's questions…</p>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="sQ">
+    <div class="qprogress" id="qpips"></div>
+    <div class="qmeta">
+      <span class="qnum" id="qnum">Q1 of 5</span>
+      <div class="trow">
+        <div class="tring" id="tr">
+          <svg width="38" height="38" viewBox="0 0 38 38">
+            <circle cx="19" cy="19" r="15"/>
+            <circle class="tarc" id="tarc" cx="19" cy="19" r="15"/>
+          </svg>
+          <span class="tnum" id="tn">20</span>
+        </div>
+        <span class="pbadge" id="pb">240 pts</span>
+      </div>
+    </div>
+    <div class="qtxt" id="qt"></div>
+    <div class="opts" id="op"></div>
+    <div class="fb" id="fb"></div>
+    <button class="flagbtn" id="flagBtn">⚑ Flag this question as inaccurate</button>
+    <button class="btn bp" id="nxt" style="display:none">Next →</button>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="sRs">
+    <div class="rs-hero">
+      <div class="rs-icon" id="rsIcon">🏆</div>
+      <div class="rs-title" id="rsTitle">Perfect Score!</div>
+      <div class="rs-sub" id="rsSub">You answered all 5 correctly</div>
+    </div>
+
+    <div class="rs-score">
+      <div class="rs-pts" id="rsPts">0</div>
+      <div class="rs-pts-lbl">Points earned today</div>
+      <div class="rs-meta">
+        <div class="rs-stat"><div class="rs-stat-val" id="rsCorrect">0/5</div><div class="rs-stat-lbl">Correct</div></div>
+        <div class="rs-stat"><div class="rs-stat-val" id="rsRank">—</div><div class="rs-stat-lbl">Fan IQ rank</div></div>
+        <div class="rs-stat"><div class="rs-stat-val" id="rsStreakVal">0</div><div class="rs-stat-lbl">🔥 Streak</div></div>
+      </div>
+    </div>
+
+    <div class="streak-msg" id="streakMsg"></div>
+
+    <!-- Guest claim -->
+    <div class="claim-box" id="claimBox" style="display:none">
+      <h3>Your score matters.</h3>
+      <p class="claim-team" id="claimTeam">Log in to save it so it counts for <strong></strong> fans on the leaderboard.</p>
+      <button class="btn ba" id="btnClaim">Log In / Create Account — Save My Score</button>
+      <button class="btn-ghost" id="btnSkipClaim">Maybe Later</button>
+    </div>
+
+    <!-- Authenticated: fanbase impact -->
+    <div class="fbrank" id="rsFbRank" style="background:#1a1a1a;border-radius:10px;margin-bottom:14px;padding:10px 14px;font-size:.85rem;border:none;display:none">
+      Your score helps <strong id="rsFbTeam"></strong> fans climb the rankings. Currently ranked <strong id="rsFbRankVal" style="color:var(--a)">#—</strong>.
+    </div>
+
+    <div style="text-align:center;margin-bottom:14px">
+      <div class="iq-badge" id="iqBadge">🏈 Starter</div>
+    </div>
+
+    <button class="btn ba" id="btnRsLb">Team Leaderboard 🏆</button>
+
+    <!-- Share card -->
+    <div class="share-card" id="shareCard"></div>
+    <div class="shr">
+      <button class="sb sx" id="shX">𝕏 Post</button>
+      <button class="sb sf" id="shF">f Share</button>
+      <button class="sb sc2" id="shC">🔗 Copy</button>
+    </div>
+
+    <div class="cbox">
+      <h4>⚔️ Challenge a friend</h4>
+      <p>Dare someone to beat your score.</p>
+      <div class="clink" id="clink"></div>
+      <button class="cbtn" id="btnCC">📋 Copy challenge link</button>
+    </div>
+
+    <button class="remind" id="btnRemind">🔔 Email me tomorrow's challenge</button>
+
+    <div class="bkdn">
+      <h4>📊 Question breakdown</h4>
+      <div id="bkdnList"></div>
+    </div>
+  </div>
+
+  <!-- ALREADY PLAYED -->
+  <div class="screen" id="sAl">
+    <div style="font-size:2.6rem;text-align:center;margin-bottom:10px">⏰</div>
+    <h2>Already played today</h2>
+    <p>Your score is locked in.</p>
+    <div class="al-score" id="alScore">—</div>
+    <div class="al-details" id="alDetails"></div>
+    <button class="btn ba" id="btnAlLb">Leaderboard 🏆</button>
+    <button class="btn bg" id="btnAlBack">← Back</button>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="screen" id="sLb">
+    <h2>🏆 Leaderboard</h2>
+    <p class="lb-sub" id="lbSub"></p>
+    <div class="tabs">
+      <button class="tab on" data-t="daily">Team Daily</button>
+      <button class="tab" data-t="alltime">All-Time</button>
+      <button class="tab" data-t="streak">Streaks</button>
+      <button class="tab" data-t="network">Fanbase IQ</button>
+    </div>
+    <table><thead id="lbH"></thead><tbody id="lbB"></tbody></table>
+    <button class="btn bg" style="margin-top:16px" id="btnLbBack">← Back</button>
+  </div>
+
+  <!-- HOW TO PLAY -->
+  <div class="screen" id="sHow">
+    <h2>How to Play</h2>
+    <p class="hw-sub">Everything you need to know</p>
+    <div class="hw-card">
+      <h4>🏈 The basics</h4>
+      <p>5 team-specific questions every day. You always answer all 5 — no sudden-death. One official attempt per day when logged in.</p>
+    </div>
+    <div class="hw-card">
+      <h4>⚡ Scoring</h4>
+      <p>Answer fast for full points. Speed scales your score within each question.</p>
+      <div class="scoring-grid">
+        <div class="sg-cell"><div class="sg-val green">120–240</div><div class="sg-lbl">Correct (speed)</div></div>
+        <div class="sg-cell"><div class="sg-val red">−50</div><div class="sg-lbl">Wrong answer</div></div>
+        <div class="sg-cell"><div class="sg-val gray">−75</div><div class="sg-lbl">Time out</div></div>
+      </div>
+      <p style="margin-top:10px;font-size:.78rem;color:#555">Max score: 1,200 pts · Score never drops below 0</p>
+    </div>
+    <div class="hw-card">
+      <h4>🔥 Perfect streak</h4>
+      <p>Get all 5 right every day to build your perfect streak. One wrong answer or timeout resets it — but your score still counts for the leaderboard.</p>
+    </div>
+    <div class="hw-card">
+      <h4>🏆 Fan IQ ranks</h4>
+      <div class="rk-row"><span>🐐 Hall of Famer</span><span style="color:#888">1,100+ pts</span></div>
+      <div class="rk-row"><span>⭐ Pro Bowler</span><span style="color:#888">800+ pts</span></div>
+      <div class="rk-row"><span>🏈 Starter</span><span style="color:#888">550+ pts</span></div>
+      <div class="rk-row"><span>📋 Backup</span><span style="color:#888">300+ pts</span></div>
+      <div class="rk-row"><span>🪑 Practice Squad</span><span style="color:#888">100+ pts</span></div>
+      <div class="rk-row" style="margin-bottom:0"><span>👀 Casual Viewer</span><span style="color:#888">0–99 pts</span></div>
+    </div>
+    <div class="hw-card">
+      <h4>🌎 Fanbase battle</h4>
+      <p>Your score helps your team's fanbase rank higher. Official scores from logged-in players count toward the network-wide Fanbase IQ Rankings.</p>
+    </div>
+    <button class="btn bp" id="btnHowBack">← Back</button>
+  </div>
+
+  <!-- LOGIN MOCK -->
+  <div class="screen" id="sLogin">
+    <div style="text-align:center;padding:20px 0 16px">
+      <div style="font-size:2rem;margin-bottom:8px">🔐</div>
+      <h2 style="color:var(--a);margin-bottom:6px">Save your score</h2>
+      <p style="color:#888;font-size:.88rem;margin-bottom:20px">Your Fan IQ — and your team's ranking — depend on it.</p>
+    </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label style="display:block;font-size:.78rem;color:#888;margin-bottom:4px">Email</label>
+      <input type="email" id="loginEmail" placeholder="you@email.com" style="width:100%;padding:13px;border-radius:10px;border:2px solid #2a2a2a;background:#1a1a1a;color:#fff;font-size:.95rem">
+    </div>
+    <div class="fg" style="margin-bottom:16px">
+      <label style="display:block;font-size:.78rem;color:#888;margin-bottom:4px">Display name</label>
+      <input type="text" id="loginName" placeholder="Your name on the leaderboard" style="width:100%;padding:13px;border-radius:10px;border:2px solid #2a2a2a;background:#1a1a1a;color:#fff;font-size:.95rem">
+    </div>
+    <p style="font-size:.7rem;color:#444;margin-bottom:14px;text-align:center">🔐 Full Piano SSO integration coming soon.</p>
+    <button class="btn ba" id="btnDoLogin">Save My Score & Create Account</button>
+    <button class="btn-ghost" id="btnCancelLogin">← Back</button>
+  </div>
+
+</div>
+
+<script>
+// ─── SPORT / LEAGUE CONFIG ────────────────────────────────────────────────────
+var CONFIG = {
+  sportId: 'football',
+  leagueId: 'nfl',
+  seasonId: '2024',
+};
+
+// ─── SITES ────────────────────────────────────────────────────────────────────
+var SITES = [
+  {siteId:'chiefs',    teamId:'chiefs',    name:'Arrowhead Addict',    team:'Kansas City Chiefs',      url:'arrowheadaddict.com',     p:'#E31837',a:'#FFB81C'},
+  {siteId:'raiders',   teamId:'raiders',   name:'Just Blog Baby',       team:'Las Vegas Raiders',       url:'justblogbaby.com',        p:'#000000',a:'#A5ACAF'},
+  {siteId:'chargers',  teamId:'chargers',  name:'Bolt Beat',            team:'Los Angeles Chargers',    url:'boltbeat.com',            p:'#0080C6',a:'#FFC20E'},
+  {siteId:'broncos',   teamId:'broncos',   name:'Predominantly Orange', team:'Denver Broncos',          url:'predominantlyorange.com', p:'#FB4F14',a:'#ffffff'},
+  {siteId:'seahawks',  teamId:'seahawks',  name:'12th Man Rising',      team:'Seattle Seahawks',        url:'12thmanrising.com',       p:'#002244',a:'#69BE28'},
+  {siteId:'bears',     teamId:'bears',     name:'Bear Goggles On',      team:'Chicago Bears',           url:'beargoggleson.com',       p:'#0B162A',a:'#C83803'},
+  {siteId:'jaguars',   teamId:'jaguars',   name:'Black and Teal',       team:'Jacksonville Jaguars',    url:'blackandteal.com',        p:'#006778',a:'#9F792C'},
+  {siteId:'falcons',   teamId:'falcons',   name:'Blogging Dirty',       team:'Atlanta Falcons',         url:'bloggingdirty.com',       p:'#A71930',a:'#FFB612'},
+  {siteId:'bills',     teamId:'bills',     name:'BuffaLowDown',         team:'Buffalo Bills',           url:'buffalowdown.com',        p:'#00338D',a:'#C60C30'},
+  {siteId:'panthers',  teamId:'panthers',  name:'Cat Crave',            team:'Carolina Panthers',       url:'catcrave.com',            p:'#0085CA',a:'#BFC0BF'},
+  {siteId:'browns',    teamId:'browns',    name:'Dawg Pound Daily',     team:'Cleveland Browns',        url:'dawgpounddaily.com',      p:'#311D00',a:'#FF3C00'},
+  {siteId:'ravens',    teamId:'ravens',    name:'Ebony Bird',           team:'Baltimore Ravens',        url:'ebonybird.com',           p:'#241773',a:'#9E7C0C'},
+  {siteId:'giants',    teamId:'giants',    name:'GMEN HQ',              team:'New York Giants',         url:'gmenhq.com',              p:'#0B2265',a:'#A71930'},
+  {siteId:'colts',     teamId:'colts',     name:'Horseshoe Heroes',     team:'Indianapolis Colts',      url:'horseshoeheroes.com',     p:'#002C5F',a:'#A2AAAD'},
+  {siteId:'eagles',    teamId:'eagles',    name:'Inside the Iggles',    team:'Philadelphia Eagles',     url:'insidetheiggles.com',     p:'#004C54',a:'#A5ACAF'},
+  {siteId:'packers',   teamId:'packers',   name:'Lombardi Ave',         team:'Green Bay Packers',       url:'lombardiave.com',         p:'#203731',a:'#FFB612'},
+  {siteId:'patriots',  teamId:'patriots',  name:'Musket Fire',          team:'New England Patriots',    url:'musketfire.com',          p:'#002244',a:'#C60C30'},
+  {siteId:'49ers',     teamId:'49ers',     name:'Niner Noise',          team:'San Francisco 49ers',     url:'ninernoise.com',          p:'#AA0000',a:'#B3995D'},
+  {siteId:'dolphins',  teamId:'dolphins',  name:'Phin Phanatic',        team:'Miami Dolphins',          url:'phinphanatic.com',        p:'#008E97',a:'#FC4C02'},
+  {siteId:'cardinals', teamId:'cardinals', name:'Raising Zona',         team:'Arizona Cardinals',       url:'raisingzona.com',         p:'#97233F',a:'#FFB612'},
+  {siteId:'rams',      teamId:'rams',      name:"Ramblin' Fan",         team:'Los Angeles Rams',        url:'ramblinfan.com',          p:'#003594',a:'#FFA300'},
+  {siteId:'commanders',teamId:'commanders',name:"Riggo's Rag",          team:'Washington Commanders',   url:'riggosrag.com',           p:'#5A1414',a:'#FFB612'},
+  {siteId:'lions',     teamId:'lions',     name:'SideLion Report',      team:'Detroit Lions',           url:'sidelionreport.com',      p:'#0076B6',a:'#B0B7BC'},
+  {siteId:'steelers',  teamId:'steelers',  name:'Still Curtain',        team:'Pittsburgh Steelers',     url:'stillcurtain.com',        p:'#101820',a:'#FFB612'},
+  {siteId:'bengals',   teamId:'bengals',   name:'Stripe Hype',          team:'Cincinnati Bengals',      url:'stripehype.com',          p:'#FB4F14',a:'#000000'},
+  {siteId:'jets',      teamId:'jets',      name:'The Jet Press',        team:'New York Jets',           url:'thejetpress.com',         p:'#125740',a:'#ffffff'},
+  {siteId:'cowboys',   teamId:'cowboys',   name:'The Landry Hat',       team:'Dallas Cowboys',          url:'thelandryhat.com',        p:'#003594',a:'#869397'},
+  {siteId:'buccaneers',teamId:'buccaneers',name:'The Pewter Plank',     team:'Tampa Bay Buccaneers',    url:'thepewterplank.com',      p:'#D50A0A',a:'#FF7900'},
+  {siteId:'vikings',   teamId:'vikings',   name:'The Viking Age',       team:'Minnesota Vikings',       url:'thevikingage.com',        p:'#4F2683',a:'#FFC62F'},
+  {siteId:'titans',    teamId:'titans',    name:'Titan Sized',          team:'Tennessee Titans',        url:'titansized.com',          p:'#0C2340',a:'#4B92DB'},
+  {siteId:'texans',    teamId:'texans',    name:'Toro Times',           team:'Houston Texans',          url:'torotimes.com',           p:'#03202F',a:'#A71930'},
+  {siteId:'saints',    teamId:'saints',    name:'Who Dat Dish',         team:'New Orleans Saints',      url:'whodatdish.com',          p:'#101820',a:'#D3BC8D'},
+];
+
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+var MAX_PER_Q = 240;
+var MIN_PER_Q = 120;
+var PENALTY_WRONG = -50;
+var PENALTY_TO    = -75;
+var TSEC = 20;
+var TODAY     = new Date().toISOString().split('T')[0];
+var YESTERDAY = new Date(Date.now()-864e5).toISOString().split('T')[0];
+var DKEY = 'nflfaniq_v4_data'; // preserved from previous version
+
+var IQ_RANKS = [
+  {min:1100,label:'🐐 Hall of Famer'},
+  {min:800, label:'⭐ Pro Bowler'},
+  {min:550, label:'🏈 Starter'},
+  {min:300, label:'📋 Backup'},
+  {min:100, label:'🪑 Practice Squad'},
+  {min:0,   label:'👀 Casual Viewer'},
+];
+
+// ─── AUTH SERVICE (Piano-ready abstraction) ───────────────────────────────────
+var Auth = {
+  _user: null,
+  isAuthenticated: function(){ return !!this._user; },
+  userId: function(){ return this._user ? this._user.userId : null; },
+  email: function(){ return this._user ? this._user.email : null; },
+  displayName: function(){ return this._user ? this._user.displayName : null; },
+  getCurrentUser: function(){ return this._user; },
+  login: function(email, displayName){
+    this._user = {
+      userId: 'u_'+email.replace(/[^a-z0-9]/gi,'_'),
+      email: email,
+      displayName: displayName || nameFrom(email),
+    };
+    try{ localStorage.setItem('faniq_auth', JSON.stringify(this._user)); }catch(e){}
+    return this._user;
+  },
+  logout: function(){
+    this._user = null;
+    try{ localStorage.removeItem('faniq_auth'); }catch(e){}
+  },
+  restore: function(){
+    try{
+      var s = localStorage.getItem('faniq_auth');
+      if(s) this._user = JSON.parse(s);
+    }catch(e){}
+  }
+};
+Auth.restore();
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+var SITE = SITES[0];
+var qs = [], qIdx = 0, score = 0, qResults = [];
+var isGuest = false;
+var tmr = null, timeLeft = TSEC;
+var DB = null;
+var pendingGuestScore = null;
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+function nameFrom(em){ return em.split('@')[0].replace(/[._\-+]/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}).trim(); }
+function iqRank(s){ for(var i=0;i<IQ_RANKS.length;i++){if(s>=IQ_RANKS[i].min)return IQ_RANKS[i].label;} return IQ_RANKS[IQ_RANKS.length-1].label; }
+function calcPts(tl){ return MIN_PER_Q + Math.round((tl/TSEC)*MIN_PER_Q); }
+function clamp(v,mn,mx){ return Math.max(mn,Math.min(mx,v)); }
+function showScreen(id){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');}); document.getElementById(id).classList.add('active'); }
+function emptyRow(c,m){ return '<tr><td colspan="'+c+'" style="color:#555;text-align:center;padding:20px">'+(m||'No scores yet!')+'</td></tr>'; }
+function getGameDate(){ return TODAY; }
+
+// ─── DROPDOWN ─────────────────────────────────────────────────────────────────
+(function(){
+  var sel = document.getElementById('teamSelect');
+  SITES.forEach(function(s){
+    var o = document.createElement('option');
+    o.value = s.siteId;
+    o.textContent = s.name+' — '+s.team;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', function(){
+    var t = SITES.filter(function(s){return s.siteId===sel.value;})[0];
+    if(t){ SITE=t; applyTheme(t); buildStartScreen(); }
+  });
+})();
+
+function applyTheme(s){
+  document.documentElement.style.setProperty('--p',s.p);
+  document.documentElement.style.setProperty('--a',s.a);
+  document.querySelector('header').style.background = s.p;
+  document.getElementById('hName').textContent = s.name;
+  document.getElementById('hUrl').textContent  = s.url;
+  document.getElementById('teamSelect').value  = s.siteId;
+  document.getElementById('startSub').textContent = 'Prove '+s.team+' fans know their team best.';
+  document.getElementById('fbTeam').textContent = s.team.split(' ').pop();
+}
+applyTheme(SITE);
+
+// ─── DB ───────────────────────────────────────────────────────────────────────
+function freshDB(){ return {daily:{},alltime:{},streaks:{},network:{},questions:{},flags:{}}; }
+function dbG(sec,key){ return (DB&&DB[sec]&&DB[sec][key]!==undefined)?DB[sec][key]:null; }
+function dbS(sec,key,val){ if(!DB[sec])DB[sec]={}; DB[sec][key]=val; }
+async function loadDB(){
+  if(DB) return;
+  try{ var r=await window.storage.get(DKEY,true); DB=r?JSON.parse(r.value):freshDB(); }
+  catch(e){ DB=freshDB(); }
+}
+function saveDB(){ try{window.storage.set(DKEY,JSON.stringify(DB),true);}catch(e){} }
+
+// ─── START SCREEN ─────────────────────────────────────────────────────────────
+async function buildStartScreen(){
+  await loadDB();
+  updateFbRankBanner();
+  var auth = document.getElementById('authCard');
+  var btnPlay = document.getElementById('btnPlay');
+  var btnGuest = document.getElementById('btnGuest');
+  var btnLogin = document.getElementById('btnLogin');
+
+  if(Auth.isAuthenticated()){
+    auth.style.display='block';
+    document.getElementById('authName').textContent = Auth.displayName();
+    var uid = Auth.userId();
+    var sk = SITE.teamId+'_'+uid;
+    var streak = dbG('streaks',sk)||{currentPerfect:0,longestPerfect:0,play:0,allTimeScore:0,gamesPlayed:0,perfectGames:0};
+    document.getElementById('authStreak').textContent  = streak.currentPerfect||0;
+    document.getElementById('authAlltime').textContent = (streak.allTimeScore||0).toLocaleString();
+    document.getElementById('authPerfect').textContent = streak.perfectGames||0;
+    btnPlay.style.display='block';
+    btnGuest.style.display='none';
+    btnLogin.style.display='none';
+    buildYesterdayPanel(uid);
+  } else {
+    auth.style.display='none';
+    btnPlay.style.display='none';
+    btnGuest.style.display='block';
+    btnLogin.style.display='block';
+    document.getElementById('ydayPanel').style.display='none';
+  }
+}
+buildStartScreen();
+
+function buildYesterdayPanel(uid){
+  var yKey = SITE.teamId+'_'+TODAY+'_yesterday_'+uid;
+  var yQs  = dbG('questions', SITE.teamId+'_'+YESTERDAY);
+  var yDay = dbG('daily', SITE.teamId+'_'+YESTERDAY);
+  var yEntry = yDay && yDay[uid];
+  var yp = document.getElementById('ydayPanel');
+  if(yQs && yEntry && yEntry.results){
+    yp.style.display='block';
+    document.getElementById('ydayQs').innerHTML = yQs.map(function(q,i){
+      var r=yEntry.results[i];
+      var ok=r&&r.correct; var to=r&&r.timedOut;
+      return '<div class="yq"><div class="yq-q">'+q.q+'</div>'
+        +'<div class="yq-a">Correct: '+q.o[q.a]+'</div>'
+        +'<div class="yq-u '+(ok?'ok':to?'to':'no')+'">'+(r?(ok?'You got it right':'To: time ran out — you answered: '+(r.picked!==null?q.o[r.picked]:'—')):'—')+'</div></div>';
+    }).join('');
+  } else { yp.style.display='none'; }
+}
+
+function updateFbRankBanner(){
+  var net = DB&&DB.network ? DB.network : {};
+  var entries = Object.entries(net).filter(function(e){return e[1]&&e[1].avg;}).sort(function(a,b){return b[1].avg-a[1].avg;});
+  var rank = entries.findIndex(function(e){return e[0]===SITE.teamId;})+1;
+  document.getElementById('fbRank').textContent = rank>0?'#'+rank:'#—';
+  document.getElementById('fbTeam').textContent = SITE.team.split(' ').slice(-1)[0]+' fans';
+}
+
+// ─── PLAY FLOW ────────────────────────────────────────────────────────────────
+async function startPlay(guest){
+  isGuest = guest;
+  await loadDB();
+  if(!guest && Auth.isAuthenticated()){
+    var uid = Auth.userId();
+    var dk = SITE.teamId+'_'+getGameDate();
+    var dayData = dbG('daily',dk)||{};
+    if(dayData[uid]){
+      var entry = dayData[uid];
+      document.getElementById('alScore').textContent = entry.score.toLocaleString()+' pts';
+      var streak = dbG('streaks',SITE.teamId+'_'+uid)||{};
+      document.getElementById('alDetails').textContent = iqRank(entry.score)+(streak.currentPerfect>0?' · 🔥 '+streak.currentPerfect+'-day perfect streak':'');
+      showScreen('sAl'); return;
+    }
+  }
+
+  // Guest: load questions silently in background, show quiz immediately with spinner inline
+  if(guest){
+    qIdx=0; score=0; qResults=[];
+    // Show quiz screen immediately with loading state
+    buildPips();
+    document.getElementById('qt').textContent='Loading question…';
+    document.getElementById('op').innerHTML='';
+    document.getElementById('nxt').style.display='none';
+    showScreen('sQ');
+    qs = await loadQs();
+    renderQ(); // replace loading state with real Q1
+    return;
+  }
+
+  showScreen('sLd');
+  var t = setTimeout(function(){document.getElementById('ldMsg').textContent='Almost there…';},5000);
+  qs = await loadQs();
+  clearTimeout(t);
+  qIdx=0; score=0; qResults=[];
+  buildPips(); renderQ(); showScreen('sQ');
+}
+
+// ─── QUESTIONS ────────────────────────────────────────────────────────────────
+async function loadQs(){
+  var gameDate = getGameDate();
+  var ck = SITE.teamId+'_'+gameDate;
+  if(DB.questions&&DB.questions[ck]){
+    var c=DB.questions[ck], v=validateQs(c);
+    if(v.length===c.length) return c;
+    delete DB.questions[ck];
+  }
+  var prompt =
+    'You are an expert NFL historian and question writer. Generate exactly 5 '+SITE.team+' trivia questions for '+gameDate+'.\n\n'
+    +'QUESTION MIX — follow this exactly:\n'
+    +'Q1 (easy): Evergreen team history — founding, championships, iconic moments, legends\n'
+    +'Q2 (easy-medium): Evergreen history — a second distinct historical fact, different topic from Q1\n'
+    +'Q3 (medium): Recent/current — something from the last 2-3 seasons, current roster or coaching staff. Must be verifiable fact, not rumor.\n'
+    +'Q4 (medium-hard): Player/stat/record — a specific measurable fact about a player, season stat, or franchise record\n'
+    +'Q5 (hard): Rivalry/playoff/draft/culture — obscure fact about a playoff moment, notable draft pick, rivalry history, or fan culture\n\n'
+    +'DIFFICULTY RULES:\n'
+    +'Q1-Q2: A fan who watched a full season could answer this. No obscure stats.\n'
+    +'Q3-Q4: A dedicated follower who reads coverage would know this.\n'
+    +'Q5: Die-hard or historian only.\n\n'
+    +'REJECTION RULES — reject any question that:\n'
+    +'- Has duplicate answer options\n'
+    +'- Uses "all of the above" or "none of the above"\n'
+    +'- Is about deaths, arrests, scandals, or serious injuries\n'
+    +'- Is based on rumors or unconfirmed reports\n'
+    +'- Asks for a specific rushing/receiving yard total on Q1 or Q2\n'
+    +'- Is ambiguous or has multiple defensible correct answers\n\n'
+    +'Return ONLY valid JSON array, no markdown:\n'
+    +'[{"q":"...","o":["A","B","C","D"],"a":0,"f":"Fun fact.","difficulty":"easy","category":"history","gameDate":"'+gameDate+'","teamId":"'+SITE.teamId+'","leagueId":"nfl"}]';
+
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1400,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok) throw new Error('API '+res.status);
+    var data=await res.json();
+    var txt=data.content.map(function(b){return b.text||'';}).join('').replace(/```json|```/g,'').trim();
+    var m=txt.match(/\[[\s\S]*\]/);
+    if(!m) throw new Error('no json');
+    var p=JSON.parse(m[0]);
+    if(!Array.isArray(p)||p.length<5) throw new Error('bad array');
+    p=validateQs(p);
+    if(p.length<5) throw new Error('validation');
+    DB.questions[ck]=p; saveDB(); return p;
+  }catch(e){ console.warn('AI failed:',e); return fallbackQs(); }
+}
+
+function validateQs(arr){
+  return arr.filter(function(q){
+    if(!q.q||!Array.isArray(q.o)||q.o.length<4) return false;
+    if(q.a<0||q.a>=q.o.length) return false;
+    var lower = q.o.map(function(o){return o.toString().trim().toLowerCase();});
+    if(lower.indexOf('all of the above')>=0||lower.indexOf('none of the above')>=0) return false;
+    var seen={};
+    for(var i=0;i<lower.length;i++){ if(seen[lower[i]]) return false; seen[lower[i]]=true; }
+    return true;
+  });
+}
+
+function fallbackQs(){
+  return[
+    {q:'Who is the current head coach of the '+SITE.team+'?',o:['Andy Reid','Bill Belichick','Sean Payton','Mike Tomlin'],a:0,f:'Andy Reid has coached the Chiefs since 2013, winning multiple Super Bowls.',difficulty:'easy',category:'coaching',gameDate:TODAY,teamId:SITE.teamId,leagueId:'nfl'},
+    {q:'How many Super Bowl championships had the '+SITE.team+' won entering the 2024 season?',o:['1','2','3','4'],a:2,f:'The Chiefs won Super Bowls IV, LIV, LVII, and LVIII.',difficulty:'easy',category:'history',gameDate:TODAY,teamId:SITE.teamId,leagueId:'nfl'},
+    {q:'Patrick Mahomes was selected with which overall pick in the 2017 NFL Draft?',o:['5th','8th','10th','15th'],a:2,f:'Mahomes was the 10th overall pick, traded up to by the Chiefs.',difficulty:'medium',category:'draft',gameDate:TODAY,teamId:SITE.teamId,leagueId:'nfl'},
+    {q:'What is the capacity of Arrowhead Stadium?',o:['69,000','72,000','74,000','76,000'],a:2,f:'Arrowhead holds ~74,000 fans and set a Guinness World Record for crowd noise at 142.2 dB.',difficulty:'medium',category:'stadium',gameDate:TODAY,teamId:SITE.teamId,leagueId:'nfl'},
+    {q:'What Guinness World Record did Arrowhead Stadium set in 2014?',o:['Loudest outdoor concert','Loudest crowd roar at a sports event','Most fans in an open stadium','Longest touchdown celebration'],a:1,f:'Arrowhead recorded 142.2 decibels during a 2014 regular season game against the Patriots.',difficulty:'hard',category:'culture',gameDate:TODAY,teamId:SITE.teamId,leagueId:'nfl'},
+  ];
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+function startTimer(){
+  clearInterval(tmr); timeLeft=TSEC;
+  var t=TSEC, r=96;
+  var arc=document.getElementById('tarc'), tn=document.getElementById('tn'), tr=document.getElementById('tr');
+  arc.style.transition='none'; arc.style.strokeDashoffset='0'; tn.textContent=TSEC; tr.classList.remove('danger');
+  setTimeout(function(){arc.style.transition='stroke-dashoffset .95s linear';},30);
+  tmr=setInterval(function(){
+    t--; timeLeft=t; tn.textContent=t;
+    arc.style.strokeDashoffset=r*(1-t/TSEC);
+    if(t<=5) tr.classList.add('danger');
+    if(t<=0){clearInterval(tmr); doTimeout();}
+  },1000);
+}
+
+function doTimeout(){
+  var q=qs[qIdx];
+  document.querySelectorAll('.ob').forEach(function(b,i){b.disabled=true;if(i===q.a)b.classList.add('ok');});
+  var pen=PENALTY_TO;
+  score=Math.max(0,score+pen);
+  qResults.push({correct:false,picked:null,timedOut:true,earned:0,penalty:pen});
+  updatePip(qIdx,'to');
+  showFb('to','⏰ Time\'s up! '+q.f, pen);
+  document.getElementById('flagBtn').classList.add('show');
+  setNxt(qIdx+1>=5?'See Results →':'Next question →');
+}
+
+// ─── QUIZ ─────────────────────────────────────────────────────────────────────
+function buildPips(){
+  var c=document.getElementById('qpips'); c.innerHTML='';
+  for(var i=0;i<5;i++){
+    var d=document.createElement('div'); d.className='qpip'+(i===0?' active':''); d.id='pip'+i;
+    c.appendChild(d);
+  }
+}
+function updatePip(i,state){
+  var p=document.getElementById('pip'+i);
+  if(!p) return;
+  p.classList.remove('active','done-ok','done-no','done-to');
+  p.classList.add('done-'+state);
+  var next=document.getElementById('pip'+(i+1));
+  if(next) next.classList.add('active');
+}
+
+function renderQ(){
+  var q=qs[qIdx];
+  document.getElementById('qnum').textContent='Q'+(qIdx+1)+' of 5';
+  document.getElementById('pb').textContent=MAX_PER_Q+' pts';
+  document.getElementById('qt').textContent=q.q;
+  var fb=document.getElementById('fb'); fb.className='fb'; fb.textContent='';
+  document.getElementById('nxt').style.display='none';
+  var fl=document.getElementById('flagBtn'); fl.className='flagbtn'; fl.disabled=false; fl.textContent='⚑ Flag this question';
+  var op=document.getElementById('op'); op.innerHTML='';
+  q.o.forEach(function(opt,i){
+    var b=document.createElement('button'); b.className='ob'; b.textContent=opt;
+    b.addEventListener('click',function(){pickAnswer(i);});
+    op.appendChild(b);
+  });
+  startTimer();
+}
+
+function pickAnswer(idx){
+  clearInterval(tmr);
+  var q=qs[qIdx];
+  var btns=document.querySelectorAll('.ob');
+  btns.forEach(function(b){b.disabled=true;});
+  var correct=idx===q.a;
+  if(correct){
+    btns[idx].classList.add('ok');
+    var earned=calcPts(timeLeft);
+    score=clamp(score+earned,0,9999);
+    qResults.push({correct:true,picked:idx,timedOut:false,earned:earned,penalty:0});
+    updatePip(qIdx,'ok');
+    showFb('ok','✅ Correct! '+(earned===MAX_PER_Q?'⚡ Full points!':''+earned+'/'+MAX_PER_Q+' pts')+' '+q.f, earned);
+  } else {
+    btns[idx].classList.add('no'); btns[q.a].classList.add('ok');
+    var pen=PENALTY_WRONG;
+    score=Math.max(0,score+pen);
+    qResults.push({correct:false,picked:idx,timedOut:false,earned:0,penalty:pen});
+    updatePip(qIdx,'no');
+    document.getElementById('flagBtn').classList.add('show');
+    showFb('no','❌ Wrong! '+q.f, pen);
+  }
+  qIdx++;
+  setNxt(qIdx>=5?'See Results →':'Next question →');
+}
+
+function showFb(type,txt,pts){
+  var fb=document.getElementById('fb');
+  fb.className='fb show '+type; fb.innerHTML=txt;
+  if(pts!==undefined){
+    var f=document.createElement('div');
+    f.className='pts-flash '+(pts>0?'gain':'lose');
+    f.textContent=pts>0?'+'+pts+' pts':pts+' pts (penalty)';
+    fb.appendChild(f);
+  }
+}
+function setNxt(txt){ var n=document.getElementById('nxt'); n.textContent=txt; n.style.display='block'; }
+
+// ─── RESULT ───────────────────────────────────────────────────────────────────
+function showResult(){
+  var correct=qResults.filter(function(r){return r.correct;}).length;
+  var perfect=correct===5;
+  document.getElementById('rsPts').textContent=score.toLocaleString();
+  document.getElementById('rsCorrect').textContent=correct+'/5';
+  document.getElementById('rsIcon').textContent=perfect?'🏆':correct>=3?'🏈':'💀';
+  document.getElementById('rsTitle').textContent=perfect?'Perfect game!':correct>=3?'Solid effort!':'Rough one today.';
+  document.getElementById('rsSub').textContent=correct+' of 5 correct · '+score.toLocaleString()+' pts';
+  document.getElementById('iqBadge').textContent=iqRank(score);
+
+  var uid = Auth.isAuthenticated()?Auth.userId():null;
+  var streak = uid?dbG('streaks',SITE.teamId+'_'+uid)||{currentPerfect:0,longestPerfect:0}:{currentPerfect:0,longestPerfect:0};
+  document.getElementById('rsStreakVal').textContent=streak.currentPerfect||0;
+
+  var sm=document.getElementById('streakMsg');
+  if(perfect){
+    sm.className='streak-msg perfect';
+    sm.textContent='🔥 Perfect day. Your Fan IQ streak lives. ('+( (streak.currentPerfect||0))+'-day streak)';
+  } else {
+    sm.className='streak-msg reset';
+    sm.textContent='Your score counts, but your perfect streak resets. Keep going — come back tomorrow.';
+  }
+
+  if(isGuest){
+    document.getElementById('claimBox').style.display='block';
+    document.getElementById('rsFbRank').style.display='none';
+    document.getElementById('claimTeam').innerHTML='Log in to save it so it counts for <strong>'+SITE.team+'</strong> fans on the leaderboard.';
+    pendingGuestScore={score:score,correct:correct,qResults:qResults,qs:qs,gameDate:TODAY};
+  } else {
+    document.getElementById('claimBox').style.display='none';
+    document.getElementById('rsFbRank').style.display='block';
+    document.getElementById('rsFbTeam').textContent=SITE.team;
+    updateFbRankBanner();
+    var net=dbG('network',SITE.teamId)||{};
+    var allNet=Object.entries(DB.network||{}).filter(function(e){return e[1]&&e[1].avg;}).sort(function(a,b){return b[1].avg-a[1].avg;});
+    var fbRankNum=allNet.findIndex(function(e){return e[0]===SITE.teamId;})+1;
+    document.getElementById('rsFbRankVal').textContent=fbRankNum>0?'#'+fbRankNum:'#—';
+  }
+
+  buildShareCard(correct, perfect, streak.currentPerfect||0);
+  buildBreakdown();
+  buildChallengeLink();
+  showScreen('sRs');
+}
+
+function buildShareCard(correct,perfect,streakCount){
+  var dots=qResults.map(function(r){return r.correct?'🟩':r.timedOut?'⬛':'🟥';}).join('');
+  var speedBonuses=qResults.filter(function(r){return r.correct&&r.earned>=200;}).length;
+  var speedStr=speedBonuses>0?Array(speedBonuses+1).join('⚡'):'';
+  var net=DB&&DB.network?DB.network:{};
+  var entries=Object.entries(net).filter(function(e){return e[1]&&e[1].avg;}).sort(function(a,b){return b[1].avg-a[1].avg;});
+  var rank=entries.findIndex(function(e){return e[0]===SITE.teamId;})+1;
+  var rankStr=rank>0?SITE.team.split(' ').slice(-1)[0]+' fans rank #'+rank+' today.':'';
+  var lines=[
+    SITE.team+' Fan IQ',
+    'Score: '+score.toLocaleString(),
+    'Result: '+correct+'/5',
+    'Streak: '+(perfect?(streakCount)+'🔥':'reset'),
+    'Rank: '+iqRank(score),
+    '',
+    dots,
+    speedStr?'Speed: '+speedStr:'',
+    rankStr,
+    '',
+    'Can you beat me?',
+  ].filter(function(l){return l!=='';}).join('\n');
+  document.getElementById('shareCard').textContent=lines;
+  document.getElementById('shX').dataset.share=lines;
+  document.getElementById('shC').dataset.share=lines;
+}
+
+function buildBreakdown(){
+  document.getElementById('bkdnList').innerHTML=qs.map(function(q,i){
+    var r=qResults[i]; if(!r) return'';
+    var type=r.correct?'ok':r.timedOut?'to':'no';
+    var icon=r.correct?'✅':r.timedOut?'⏰':'❌';
+    var ansLine=r.correct?'Your answer: '+q.o[r.picked||q.a]
+      :r.timedOut?'Timed out — correct: '+q.o[q.a]
+      :'Your answer: '+q.o[r.picked]+' · Correct: '+q.o[q.a];
+    var ptsStr=r.correct?'+'+r.earned+' pts':(r.penalty)+' pts penalty';
+    return '<div class="bq"><div class="bq-i">'+icon+'</div><div class="bq-body">'
+      +'<div class="bq-q">'+q.q+'</div>'
+      +'<div class="bq-ans '+type+'">'+ansLine+'</div>'
+      +'<div class="bq-pts '+(r.correct?'gain':'lose')+'">'+ptsStr+'</div>'
+      +'<div class="bq-fact">'+q.f+'</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+function buildChallengeLink(){
+  var url='https://'+SITE.url;
+  var txt='⚔️ I scored '+score.toLocaleString()+'pts ('+iqRank(score)+') on the '+SITE.team+' Fan IQ — beat me? '+url;
+  document.getElementById('clink').textContent=txt;
+  document.getElementById('btnCC').dataset.copy=txt;
+}
+
+// ─── PERSIST ──────────────────────────────────────────────────────────────────
+function persistScore(uid,sc,res,qset){
+  var dk=SITE.teamId+'_'+getGameDate();
+  var day=dbG('daily',dk)||{};
+  day[uid]={score:sc,results:res,correct:res.filter(function(r){return r.correct;}).length};
+  dbS('daily',dk,day);
+
+  var sk=SITE.teamId+'_'+uid;
+  var streak=dbG('streaks',sk)||{currentPerfect:0,longestPerfect:0,play:0,allTimeScore:0,gamesPlayed:0,perfectGames:0};
+  var perfect=res.filter(function(r){return r.correct;}).length===5;
+  streak.allTimeScore=(streak.allTimeScore||0)+sc;
+  streak.gamesPlayed=(streak.gamesPlayed||0)+1;
+  if(perfect){
+    streak.currentPerfect=(streak.currentPerfect||0)+1;
+    streak.longestPerfect=Math.max(streak.longestPerfect||0,streak.currentPerfect);
+    streak.perfectGames=(streak.perfectGames||0)+1;
+  } else {
+    streak.currentPerfect=0;
+  }
+  dbS('streaks',sk,streak);
+
+  var net=dbG('network',SITE.teamId)||{team:SITE.team,total:0,games:0};
+  net.team=SITE.team; net.total+=sc; net.games++; net.avg=Math.round(net.total/net.games);
+  dbS('network',SITE.teamId,net);
+
+  saveDB();
+}
+
+// ─── LEADERBOARD ──────────────────────────────────────────────────────────────
+function showLb(tab){
+  showScreen('sLb');
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.t===tab);});
+  var hd=document.getElementById('lbH'), bd=document.getElementById('lbB'), sb=document.getElementById('lbSub');
+  var M=['🥇','🥈','🥉'], C=['r1','r2','r3'];
+  var me=Auth.displayName()||'';
+
+  function mkRow(user,i,isMe,cells){
+    return '<tr class="'+(isMe?'me':'')+'"><td class="'+(C[i]||'')+'">'+(M[i]||i+1)+'</td>'+cells+'</tr>';
+  }
+
+  if(tab==='daily'){
+    sb.textContent="Today's "+SITE.team+' scores (official plays)';
+    hd.innerHTML='<tr><th>#</th><th>Player</th><th>Correct</th><th>Score</th></tr>';
+    var day=dbG('daily',SITE.teamId+'_'+TODAY)||{};
+    var rows=Object.entries(day).map(function(e){
+      var uid2=e[0], d=e[1];
+      var sk2=SITE.teamId+'_'+uid2;
+      var str=dbG('streaks',sk2)||{};
+      var name=str.displayName||uid2;
+      return{user:name,score:d.score,correct:d.correct||0};
+    }).sort(function(a,b){return b.score-a.score;});
+    bd.innerHTML=rows.length?rows.slice(0,20).map(function(r,i){return mkRow(r.user,i,r.user===me,'<td>'+r.user+'</td><td>'+r.correct+'/5</td><td>'+r.score.toLocaleString()+'</td>');}).join(''):emptyRow(4);
+
+  }else if(tab==='alltime'){
+    sb.textContent='All-time '+SITE.team+' leaderboard';
+    hd.innerHTML='<tr><th>#</th><th>Player</th><th>Total</th><th>Games</th></tr>';
+    var rows2=Object.entries(DB.streaks||{}).filter(function(e){return e[0].indexOf(SITE.teamId+'_')===0;}).map(function(e){return{user:e[1].displayName||e[0],total:e[1].allTimeScore||0,games:e[1].gamesPlayed||0};}).sort(function(a,b){return b.total-a.total;});
+    bd.innerHTML=rows2.length?rows2.slice(0,20).map(function(r,i){return mkRow(r.user,i,r.user===me,'<td>'+r.user+'</td><td>'+r.total.toLocaleString()+'</td><td>'+r.games+'</td>');}).join(''):emptyRow(4);
+
+  }else if(tab==='streak'){
+    sb.textContent='Perfect streaks — '+SITE.team;
+    hd.innerHTML='<tr><th>#</th><th>Player</th><th>Streak</th><th>Best</th></tr>';
+    var rows3=Object.entries(DB.streaks||{}).filter(function(e){return e[0].indexOf(SITE.teamId+'_')===0;}).map(function(e){return{user:e[1].displayName||e[0],cur:e[1].currentPerfect||0,best:e[1].longestPerfect||0};}).sort(function(a,b){return b.cur-a.cur||b.best-a.best;});
+    bd.innerHTML=rows3.length?rows3.slice(0,20).map(function(r,i){return mkRow(r.user,i,r.user===me,'<td>'+r.user+'</td><td style="color:#FFB81C">🔥 '+r.cur+'</td><td style="color:#888">'+r.best+'</td>');}).join(''):emptyRow(4,'No streaks yet!');
+
+  }else if(tab==='network'){
+    sb.textContent='Fanbase IQ rankings — all teams (avg score)';
+    hd.innerHTML='<tr><th>#</th><th>Fanbase</th><th>Avg Score</th><th>Players</th></tr>';
+    var rows4=SITES.filter(function(s){return DB.network&&DB.network[s.teamId];}).map(function(s){return Object.assign({teamId:s.teamId},DB.network[s.teamId]);}).sort(function(a,b){return b.avg-a.avg;});
+    bd.innerHTML=rows4.length?rows4.map(function(r,i){var me2=r.teamId===SITE.teamId;return '<tr class="'+(me2?'me':'')+'"><td class="'+(C[i]||'')+'">'+(M[i]||i+1)+'</td><td>'+r.team+(me2?'<span class="yb">YOU</span>':'')+'</td><td>'+r.avg.toLocaleString()+'</td><td>'+r.games+'</td></tr>';}).join(''):emptyRow(4,'No network data yet!');
+  }
+}
+
+// ─── COPY ─────────────────────────────────────────────────────────────────────
+function copyText(txt,btn,reset){
+  function done(){btn.textContent='✅ Copied!';setTimeout(function(){btn.textContent=reset;},2000);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(fb2);}else{fb2();}
+  function fb2(){var ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');done();}catch(e){}document.body.removeChild(ta);}
+}
+
+// ─── EVENTS (delegation) ──────────────────────────────────────────────────────
+document.body.addEventListener('click', async function(e){
+  var btn = e.target.closest('button');
+  if(!btn) return;
+  var id = btn.id;
+
+  if(id==='btnPlay')   { startPlay(false); }
+  else if(id==='btnGuest')  { startPlay(true); }
+  else if(id==='btnLogin')  { showScreen('sLogin'); }
+  else if(id==='btnLb')     { await loadDB(); showLb('daily'); }
+  else if(id==='btnHow')    { showScreen('sHow'); }
+  else if(id==='btnHowBack'){ buildStartScreen(); showScreen('sStart'); }
+  else if(id==='btnAlLb')   { showLb('daily'); }
+  else if(id==='btnAlBack') { buildStartScreen(); showScreen('sStart'); }
+  else if(id==='btnLbBack') { buildStartScreen(); showScreen('sStart'); }
+  else if(id==='btnRsLb')   { showLb('daily'); }
+  else if(id==='nxt'){
+    if(qIdx<5){ renderQ(); }
+    else{
+      if(!isGuest && Auth.isAuthenticated()){
+        persistScore(Auth.userId(),score,qResults,qs);
+        var sk3=SITE.teamId+'_'+Auth.userId();
+        var str3=dbG('streaks',sk3)||{};
+        str3.displayName=Auth.displayName();
+        dbS('streaks',sk3,str3);
+        saveDB();
+      }
+      showResult();
+    }
+  }
+  else if(id==='flagBtn'){
+    var ri=qIdx>0?qIdx-1:0;
+    if(!DB.flags)DB.flags={};
+    var fk=SITE.teamId+'_'+TODAY+'_q'+ri;
+    DB.flags[fk]=(DB.flags[fk]||0)+1; saveDB();
+    btn.textContent='✅ Flagged — thanks!'; btn.disabled=true;
+  }
+  else if(id==='btnClaim'){ showScreen('sLogin'); }
+  else if(id==='btnSkipClaim'){ /* stay on result */ }
+  else if(id==='btnCancelLogin'){ showScreen(pendingGuestScore?'sRs':'sStart'); }
+  else if(id==='btnDoLogin'){
+    var em2 = document.getElementById('loginEmail').value.trim().toLowerCase();
+    var nm2 = document.getElementById('loginName').value.trim();
+    if(!em2||em2.indexOf('@')<1){ alert('Please enter a valid email.'); return; }
+    Auth.login(em2, nm2||nameFrom(em2));
+    if(pendingGuestScore){
+      var ps=pendingGuestScore;
+      persistScore(Auth.userId(),ps.score,ps.qResults,ps.qs);
+      var sk4=SITE.teamId+'_'+Auth.userId();
+      var str4=dbG('streaks',sk4)||{};
+      str4.displayName=Auth.displayName(); dbS('streaks',sk4,str4); saveDB();
+      pendingGuestScore=null;
+      alert('Score saved! Welcome, '+Auth.displayName()+'.');
+      buildStartScreen(); showScreen('sStart');
+    } else {
+      buildStartScreen(); showScreen('sStart');
+    }
+  }
+  else if(id==='shX'){
+    var msg=btn.dataset.share||''; window.open('https://x.com/intent/tweet?text='+encodeURIComponent(msg),'_blank');
+  }
+  else if(id==='shF'){
+    window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent('https://'+SITE.url),'_blank');
+  }
+  else if(id==='shC'){
+    copyText(btn.dataset.share||'',btn,'🔗 Copy');
+  }
+  else if(id==='btnCC'){
+    copyText(btn.dataset.copy||document.getElementById('clink').textContent,btn,'📋 Copy challenge link');
+  }
+  else if(id==='btnRemind'){
+    var rk=iqRank(score);
+    window.open('mailto:'+( Auth.email()||''  )+'?subject='+encodeURIComponent("Tomorrow's "+SITE.team+' Fan IQ is ready!')+'&body='+encodeURIComponent('Play at https://'+SITE.url+'\n\nYour rank: '+rk));
+  }
+});
+
+document.body.addEventListener('click', function(e){
+  if(e.target.classList&&e.target.classList.contains('tab')){
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+    e.target.classList.add('on'); showLb(e.target.dataset.t);
+  }
+});
+</script>
+</body>
+</html>
